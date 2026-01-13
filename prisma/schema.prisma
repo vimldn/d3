@@ -1,0 +1,43 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+
+model DomainDrop {
+  domainName         String   @id
+  dropTimeUtc        DateTime
+  status             String   @default("new")
+  lastSeenOnDroplist DateTime
+  lastErrorCode      String?
+  lastErrorMsg       String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  backorders Backorder[]
+  attempts   Attempt[]
+}
+
+model Backorder {
+  id         String   @id @default(cuid())
+  domainName String
+  customerId String
+  priority   Int      @default(0)
+  createdAt  DateTime @default(now())
+  domain DomainDrop @relation(fields: [domainName], references: [domainName])
+}
+
+model Attempt {
+  id          String   @id @default(cuid())
+  domainName  String
+  attemptNo   Int
+  sentTimeUtc DateTime
+  rttMs       Int
+  resultCode  String
+  resultMsg   String
+  createdAt   DateTime @default(now())
+  domain DomainDrop @relation(fields: [domainName], references: [domainName])
+}
+
+model WorkerHeartbeat {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  lastSeen  DateTime
+  details   String?
+}
